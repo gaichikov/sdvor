@@ -57,13 +57,11 @@
                     </div>
                 </div>
                 <button v-if="orderedItems" class="btn btn-outline-success mt-3" @click="place_new_order">Оформить заказ</button>
-                  <p class="mt-2" v-if="errors.length">
-                    <b>Пожалуйста исправьте ошибки:</b>
+                  <p class="mt-2" v-if="notifications.length">
                     <ul>
-                      <li v-for="error in errors">[[ error ]]</li>
+                      <li v-for="notification in notifications">[[ notification ]]</li>
                     </ul>
                   </p>
-                    <p v-show="success" class="text-success">Заказ оформлен</p>
             </div>
         </div>
     </div>
@@ -86,8 +84,7 @@
                 items: [],
 //                orderedItems: {},
                 orderedItems: [],
-                errors: [],
-                success: false,
+                notifications: [],
 
 
             },
@@ -109,26 +106,26 @@
                 },
                 place_new_order() {
                     console.log(this.orderedItems);
-                    this.errors = [];
+                    this.notifications = [];
                     if (!this.phone) {
-                        this.errors.push('Укажите номер телефона');
+                        this.notifications.push('Укажите номер телефона');
                     }
                     if (!this.address) {
-                        this.errors.push('Укажите адрес.');
+                        this.notifications.push('Укажите адрес.');
                     }
                     if (!this.full_name) {
-                        this.errors.push('Укажите ФИО.');
+                        this.notifications.push('Укажите ФИО.');
                     }
                     if (!this.email) {
-                        this.errors.push('Укажите email.');
+                        this.notifications.push('Укажите email.');
                     }
 
                     if (!(this.orderedItems).length) {
-                        this.errors.push('Выберите товары.');
+                        this.notifications.push('Выберите товары.');
                     }
 
                     if (this.phone && this.address && this.full_name && this.email){
-                        this.errors = [];
+                        this.notifications = [];
                         console.log('Placing new order');
 
                         const form = new FormData();
@@ -139,7 +136,7 @@
                         form.append('items', JSON.stringify(this.orderedItems));
 
                         axios.post(api_url + 'orders', form).then(response => {
-                            success = true;
+                            this.notifications.push('Заказ отправлен');
                             console.log(response);
                         }).catch(error => {
                             console.log(error);
