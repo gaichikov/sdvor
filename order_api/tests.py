@@ -7,7 +7,7 @@ from .models import Order, OrderedItem
 
 class ApiTestCase(TestCase):
 
-    fixtures = ['fixtures/items.json']
+    fixtures = ['fixtures/items.json', 'fixtures/users.json']
     # We take items from fixtures
     # Price for item 1 = 359
     # Price for item 2 = 10
@@ -15,7 +15,9 @@ class ApiTestCase(TestCase):
     def setUp(self):
         # Every test needs a client
         self.client = Client()
-        self.user = User.objects.create_user(username="test", password="sdvor12345", email="test@sdvor.com")
+        self.username = 'test'
+        self.password = 'sdvor12345'
+        self.user = User.objects.get(username=self.username)
         self.client.force_login(self.user)
 
     def test_get_items(self):
@@ -51,3 +53,15 @@ class ApiTestCase(TestCase):
         response_json = response.json()
         total_sum = response_json['results']['total_sum']
         self.assertEqual(total_sum, 1805)
+
+    def test_jwt_auth(self):
+        # Testing authentication with JWT
+        response = self.client.post('/api/login_jwt', {'username': self.username, 'password': self.password})
+        response_json = response.json()
+        self.assertIn('token', response_json)
+        token = response_json['token']
+        response = self.client.get('/api/items', Authorization=token)
+        self.assertEqual(response.status_code, 200)
+
+
+

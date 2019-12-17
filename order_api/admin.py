@@ -7,7 +7,8 @@ from .models import *
 
 class OrderAdmin(admin.ModelAdmin):
 
-    fields = ['owner', ]
+    fields = ['owner', 'contact', 'items']
+    list_display = ['order_uid', 'ts', 'owner', 'contact']
 
 
 class ContactAdmin(admin.ModelAdmin):

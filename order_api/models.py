@@ -4,6 +4,8 @@ from django.db.models import Sum
 from django.dispatch import receiver
 from django.db.models.signals import post_save
 from django.contrib.auth.models import User
+from django.core.validators import validate_email
+from django.core.exceptions import ValidationError
 
 
 class Item(models.Model):
@@ -13,9 +15,12 @@ class Item(models.Model):
 
     class Meta:
         db_table = 'items'
+        verbose_name = "Товар"
+        verbose_name_plural = "Товары"
 
     def __str__(self):
         return self.name
+
 
 
 class Contact(models.Model):
@@ -23,13 +28,15 @@ class Contact(models.Model):
     phone = models.CharField(max_length=100, blank=True, null=True)
     address = models.CharField(max_length=1000, blank=True, null=True)
     full_name = models.CharField(max_length=1000, blank=True, null=True)
-    email = models.EmailField(max_length=1000)
+    email = models.EmailField(max_length=1000, validators=[validate_email])
 
     def __str__(self):
         return self.full_name
 
     class Meta:
         db_table = 'contacts'
+        verbose_name = "Контакт"
+        verbose_name_plural = "Контакты"
 
 
 class OrderedItem(models.Model):
@@ -41,6 +48,12 @@ class OrderedItem(models.Model):
 
     class Meta:
         db_table = 'ordered_items'
+        verbose_name = "Заказанный товар"
+        verbose_name_plural = "Заказанные товары"
+
+
+    def __str__(self):
+        return self.item.name
 
     @property
     def sum(self):
@@ -58,6 +71,8 @@ class Order(models.Model):
 
     class Meta:
         db_table = 'orders'
+        verbose_name = "Заказ"
+        verbose_name_plural = "Заказы"
 
     def __str__(self):
         return self.order_uid

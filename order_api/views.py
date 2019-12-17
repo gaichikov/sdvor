@@ -1,5 +1,7 @@
 import logging
 import json
+import jwt
+from datetime import datetime, timedelta
 
 from django.shortcuts import render, HttpResponse, Http404
 from django.http import JsonResponse
@@ -7,16 +9,44 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required
 from django.views.decorators.csrf import csrf_exempt
 from django.core import serializers
+from django.contrib.auth.models import User
 from .models import Order, Item, Contact, OrderedItem
+
+
+JWT_SECRET = 'secret'
+JWT_ALGORITHM = 'HS256'
+JWT_EXP_DELTA_SECONDS = 60*10
+
+logger = logging.getLogger(__name__)
+
+@csrf_exempt
+def login_jwt(request):
+    print('Login JWT')
+    if request.method == 'POST':
+        try:
+            user = User.objects.get(username=request.POST['username'])
+            if user.check_password(request.POST['password']):
+                print('Password matched')
+            else:
+                print('Wrong credentials')
+                return JsonResponse({'message': 'Wrong credentials'}, status=400)
+            payload = {
+                    'user_id': user.id,
+                    'exp': datetime.utcnow() + timedelta(seconds=JWT_EXP_DELTA_SECONDS)
+                }
+            jwt_token = jwt.encode(payload, JWT_SECRET, JWT_ALGORITHM)
+            return JsonResponse({'token': jwt_token.decode('UTF-8')})
+        except Exception as e:
+            print(e)
 
 
 def orders(request):
     ''' Handles post/get requests '''
     if not request.user.is_authenticated:
-        return HttpResponse(status=401)
+        return JsonResponse({'message': 'Not authorized'}, status=401)
+
 
     if request.method == 'POST':
-        # print('post method')
         try:
             new_contact = Contact(
                 phone=request.POST['phone'],
@@ -32,24 +62,28 @@ def orders(request):
             )
             new_order.save()
 
-            # Save ordered items (with quantity parameter) and append to many to many item field
+            # Save ordered items (with quantity parameter) and append to many to many item field of order
             if 'items' in request.POST:
-                obj_list = []
                 ordered_items_list = json.loads(request.POST['items'])
+            else:
+                return JsonResponse({'message': 'No items field present'}, status=404)
 
+            if ordered_items_list:
+                obj_list = []
                 for item in ordered_items_list:
                     obj_list.append(OrderedItem(item_id=item['item']['id'], quantity=item['quantity']))
                 created_items = OrderedItem.objects.bulk_create(obj_list)
                 new_order.items.add(*created_items)
 
-                return HttpResponse(status=201)
+                return JsonResponse({'message': 'Order created'}, status=201)
             else:
+                logger.error('No items in request')
                 print('No items in request')
-                return HttpResponse(status=404)
+                return JsonResponse({'message': 'No items in request'}, status=404)
 
         except Exception as e:
-            print(e)
-            return HttpResponse(status=500)
+            # print(e)
+            return JsonResponse({'message': 'Internal server error'}, status=500)
     else:
         MAX_OBJECTS = 50
         orders = Order.objects.all().prefetch_related('contact')[:MAX_OBJECTS]
@@ -78,6 +112,8 @@ def orders_detail(request, pk):
 
 def items(request):
     ''' Returns items list '''
+    if not request.user.is_authenticated:
+        return JsonResponse({'message': 'Not authorized'}, status=401)
 
     items_qs = Item.objects.all().order_by('name').values('id', 'name', 'price')
     data = {'results': list(items_qs)}

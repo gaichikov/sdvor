@@ -50,10 +50,10 @@
                     <div class="col-5">[[ orderedItem.item.name ]]</div>
                     <div class="col-2">[[ orderedItem.item.price ]] &#8381;</div>
                     <div class="col-4">
-                        <button class="btn btn-sm btn-outline-success mr-2" @click="increment_item([[orderedItem.item.id]], 1)">-</button>
+                        <button class="btn btn-sm btn-outline-success mr-2" title="Уменьшить количество" @click="orderedItem.quantity -= 1">-</button>
                         [[ orderedItem.quantity ]]
-                        <button class="btn btn-sm btn-outline-success ml-2" @click="increment_item([[orderedItem.item.id]], -1)">+</button>
-                        <button class="btn btn-sm btn-outline-danger" @click="$delete(orderedItems, key)">X</button>
+                        <button class="btn btn-sm btn-outline-success ml-2" title="Увеличить количество" @click="orderedItem.quantity += 1">+</button>
+                        <button class="btn btn-sm btn-outline-danger" title="Удалить товар" @click="$delete(orderedItems, key)">X</button>
                     </div>
                 </div>
                 <button v-if="orderedItems" class="btn btn-outline-success mt-3" @click="place_new_order">Оформить заказ</button>
@@ -63,6 +63,7 @@
                       <li v-for="error in errors">[[ error ]]</li>
                     </ul>
                   </p>
+                    <p v-show="success" class="text-success">Заказ оформлен</p>
             </div>
         </div>
     </div>
@@ -85,7 +86,10 @@
                 items: [],
 //                orderedItems: {},
                 orderedItems: [],
-                errors: []
+                errors: [],
+                success: false,
+
+
             },
             methods: {
                 get_items_list() {
@@ -105,7 +109,7 @@
                 },
                 place_new_order() {
                     console.log(this.orderedItems);
-
+                    this.errors = [];
                     if (!this.phone) {
                         this.errors.push('Укажите номер телефона');
                     }
@@ -117,6 +121,10 @@
                     }
                     if (!this.email) {
                         this.errors.push('Укажите email.');
+                    }
+
+                    if (!(this.orderedItems).length) {
+                        this.errors.push('Выберите товары.');
                     }
 
                     if (this.phone && this.address && this.full_name && this.email){
@@ -131,6 +139,7 @@
                         form.append('items', JSON.stringify(this.orderedItems));
 
                         axios.post(api_url + 'orders', form).then(response => {
+                            success = true;
                             console.log(response);
                         }).catch(error => {
                             console.log(error);
