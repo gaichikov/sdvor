@@ -42,7 +42,8 @@
 логин: test
 пароль: sdvor12345
 
-Авторизация по JWT токену доступна через роут /api/login_jwt - тут получаем токен (в post request указываем username и password), далее полученный токен подставляем в хедер Authorization. Время жизни токена 10 минут.
+Авторизация по JWT токену доступна через роут /api/login_jwt - тут получаем токен (в post request указываем username и password), далее полученный токен подставляем в хедер Authorization. 
+Время жизни токена 10 минут. Запросы с JWT токеном обрабатываются через кастомное middlware  'order_api.middleware.JWTAuthMiddleware'
 
 доступные api endpoint`ы:
 
