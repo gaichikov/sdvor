@@ -4,33 +4,41 @@
 
 1) Склонировать репозиторий, установить виртуальное окружение и пакеты
 
-> git clone https://github.com/gaichikov/sdvor.git
-> cd sdvor
-> virtualenv -p python3 venv
-> source venv/bin/activate
-> pip install -r requirements.txt
+'''
+git clone https://github.com/gaichikov/sdvor.git
+cd sdvor
+virtualenv -p python3 venv
+source venv/bin/activate
+pip install -r requirements.txt
+'''
 
 2) Файл конфигурации sdvor/__local_settings.py  переименовать в sdvor/local_settings.py, поправить в нем реквизиты доступа к БД Postgres . 
 
 3) Создать базу данных Postgres
- 
-> su postgres
-> psql
-> create database sdvor;
+''' 
+su postgres
+psql
+create database sdvor;
+'''
 
 4) Применить миграции
 
-> ./manage.py makemigrations order_api
-> ./manage.py migrate
+'''
+./manage.py makemigrations order_api
+./manage.py migrate
+'''
  
 5) Загрузить фикстуры из fixtures/items.json
 
-> ./manage.py loaddata fixtures/users.json
-> ./manage.py loaddata fixtures/items.json
+'''
+./manage.py loaddata fixtures/users.json
+./manage.py loaddata fixtures/items.json
+'''
 
 6) Запустить сервер
 
-> ./manage.py runserver 0.0.0.0:8000 
+'''./manage.py runserver 0.0.0.0:8000'''
+ 
 
 Поскольку нельзя пользоваться django restframework сделаны view которые обрабатывают запросы POST/GET и возвращают JSONResponse с соответствующим статусом.
 
@@ -40,8 +48,9 @@
 
 Доступ: 
 
-> логин: test
-> пароль: sdvor12345
+логин: test
+
+пароль: sdvor12345
 
 Авторизация по JWT токену доступна через роут /api/login_jwt - тут получаем токен (в post request указываем username и password), далее полученный токен подставляем в хедер Authorization. 
 Время жизни токена 10 минут. Запросы с JWT токеном обрабатываются через кастомное middlware  'order_api.middleware.JWTAuthMiddleware'
@@ -73,6 +82,6 @@ items: [{"quantity":4,"item":{"id":2}}, {"quantity":2,"item":{"id":1}}] }
 
 Запуск через 
 
-> ./manage.py test
+'''./manage.py test'''
 
 Админский интерфейс сильно не кастомизировал, но создать заказы, товары через него можно.
